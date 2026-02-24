@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>單位換算練習（PWA）</title>
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    :root{
+      --bg:#071022;
+      --card:#0f1b33;
+      --card2:#0b162c;
+      --text:#e6edf7;
+      --muted:#9fb0c9;
+      --line:#203255;
+      --btn:#2d6cff;
+      --btn2:#2a3550;
+      --ok:#27c07d;
+      --bad:#ff5c7a;
+      --warn:#ffcc66;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--text);
+      background:radial-gradient(1200px 600px at 30% 20%, #0e2a57 0%, var(--bg) 55%);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", Arial, sans-serif;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    h1{margin:6px 0 14px;font-size:20px;font-weight:800;letter-spacing:.5px}
+    .grid{display:grid;grid-template-columns: 420px 1fr; gap:14px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .row > *{flex:0 0 auto}
+    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type="number"], input[type="text"]{
+      background:#0a1430;border:1px solid var(--line);color:var(--text);
+      border-radius:10px;padding:10px 10px;outline:none; width:110px;
+    }
+    input[type="text"]{width:220px}
+    .btn{
+      border:1px solid transparent;border-radius:12px;
+      padding:10px 12px; cursor:pointer; font-weight:700;
+      background:var(--btn); color:white;
+    }
+    .btn.secondary{background:var(--btn2);border-color:var(--line)}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .pill{
+      padding:6px 10px;border:1px solid var(--line);
+      border-radius:999px;background:#0a1430;color:var(--muted);font-size:12px
+    }
+    .bigQ{
+      font-size:18px;font-weight:800;line-height:1.35;margin:8px 0 10px;
+    }
+    .hint{color:var(--muted);font-size:12px;line-height:1.4}
+    .status{
+      display:flex;flex-wrap:wrap;gap:8px;margin-top:10px
+    }
+    .status .pill strong{color:var(--text)}
+    .ok{color:var(--ok);font-weight:800}
+    .bad{color:var(--bad);font-weight:800}
+    .warn{color:var(--warn);font-weight:800}
+
+    .unitsBox{margin-top:10px;display:grid;grid-template-columns:1fr;gap:10px}
+    .cat{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:#0a1430;
+    }
+    .catHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .catHead .left{display:flex;align-items:center;gap:10px}
+    .catTitle{font-weight:900}
+    .unitList{margin-top:8px;display:flex;flex-wrap:wrap;gap:10px}
+    .chk{display:flex;align-items:center;gap:8px;color:var(--text);font-size:13px}
+    .chk input{transform:scale(1.05)}
+
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
+    th,td{border-bottom:1px solid var(--line);padding:8px 6px;vertical-align:top}
+    th{color:var(--muted);text-align:left;font-weight:700}
+    td{color:var(--text)}
+    .right{ text-align:right }
+    .mono{font-variant-numeric: tabular-nums}
+    .small{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>單位換算練習（長度 / 重量 / 體積 / 時間）</h1>
+
+  <div class="grid">
+    <!-- 左：設定 -->
+    <div class="card">
+      <div class="label">出題設定</div>
+      <div class="row">
+        <div>
+          <div class="label">題數</div>
+          <input id="totalQ" type="number" min="1" max="999" value="10" />
+        </div>
+        <div>
+          <div class="label">每題限時（秒）</div>
+          <input id="secPerQ" type="number" min="1" max="9999" value="15" />
+        </div>
+        <label class="chk" style="margin-top:18px">
+          <input id="noTimer" type="checkbox" />
+          不限時
+        </label>
+      </div>
+
+      <div class="unitsBox" id="unitsBox"></div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="startBtn">開始</button>
+        <button class="btn secondary" id="resetBtn">重置統計</button>
+        <span class="pill mono">狀態：<strong id="modeText">未開始</strong></span>
+      </div>
+
+      <div class="hint" style="margin-top:10px">
+        規則：先勾選「類別」，再勾選該類別允許出現的「單位」。<br/>
+        出題會在你勾選的類別中隨機挑一類，並在該類可用單位中隨機挑「來源單位 → 目標單位」。
+      </div>
+    </div>
+
+    <!-- 右：題目/作答/統計 -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <span class="pill mono">進度：<strong id="progress">0 / 0</strong></span>
+        <span class="pill mono">剩餘：<strong id="timer">--</strong></span>
+      </div>
+
+      <div class="bigQ" id="question">請按「開始」</div>
+
+      <div class="row">
+        <div>
+          <div class="label">你的答案（可小數）</div>
+          <input id="answer" type="text" inputmode="decimal" placeholder="例如 1.23" />
+        </div>
+        <button class="btn" id="submitBtn" disabled>送出</button>
+        <button class="btn secondary" id="skipBtn" disabled>跳過</button>
+      </div>
+
+      <div class="hint" id="feedback" style="margin-top:8px"></div>
+
+      <div class="status mono">
+        <span class="pill">答對：<strong id="okN">0</strong></span>
+        <span class="pill">答錯：<strong id="badN">0</strong></span>
+        <span class="pill">超時：<strong id="toN">0</strong></span>
+        <span class="pill">正確率：<strong id="acc">0.0%</strong></span>
+        <span class="pill">平均反應：<strong id="avg">0.00s</strong></span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:52px">#</th>
+            <th>題目</th>
+            <th class="right">你的答案</th>
+            <th class="right">正確答案</th>
+            <th style="width:70px">結果</th>
+            <th class="right" style="width:90px">反應(秒)</th>
+            <th class="right" style="width:70px">時間</th>
+          </tr>
+        </thead>
+        <tbody id="log"></tbody>
+      </table>
+
+      <div class="small" style="margin-top:10px">
+        說明：判定採「相對誤差 ≤ 0.5% 或絕對誤差 ≤ 1e-9」為答對（方便處理小數）。  
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // === 單位表：全部換成「基準單位」===
+  // 長度基準：m；重量基準：g；體積基準：L；時間基準：s
+  const CATS = [
+    {
+      key: "len",
+      name: "長度",
+      base: "m",
+      units: [
+        { key:"km", label:"km", factorToBase: 1000 },     // 1 km = 1000 m
+        { key:"m",  label:"m",  factorToBase: 1 },
+        { key:"mm", label:"mm", factorToBase: 0.001 }    // 1 mm = 0.001 m
+      ]
+    },
+    {
+      key: "mass",
+      name: "重量",
+      base: "g",
+      units: [
+        { key:"kg", label:"kg", factorToBase: 1000 },     // 1 kg = 1000 g
+        { key:"g",  label:"g",  factorToBase: 1 },
+        { key:"mg", label:"mg", factorToBase: 0.001 }    // 1 mg = 0.001 g
+      ]
+    },
+    {
+      key: "vol",
+      name: "體積",
+      base: "L",
+      units: [
+        { key:"L",  label:"L",  factorToBase: 1 },
+        { key:"mL", label:"mL", factorToBase: 0.001 }    // 1 mL = 0.001 L
+      ]
+    },
+    {
+      key: "time",
+      name: "時間",
+      base: "s",
+      units: [
+        { key:"s",   label:"s",   factorToBase: 1 },
+        { key:"min", label:"min", factorToBase: 60 },
+        { key:"h",   label:"h",   factorToBase: 3600 }
+      ]
+    }
+  ];
+
+  // === UI 產生：類別勾選 + 單位勾選 ===
+  const unitsBox = $("unitsBox");
+  const state = {
+    enabledCats: new Set(["len","mass","vol","time"]),
+    enabledUnits: {
+      len: new Set(["km","m","mm"]),
+      mass: new Set(["kg","g","mg"]),
+      vol: new Set(["L","mL"]),
+      time: new Set(["s","min","h"])
+    },
+    running: false,
+    idx: 0,
+    total: 0,
+    tLeft: 0,
+    timerId: null,
+    qStartMs: 0,
+    current: null, // {catKey, from, to, value, correct}
+    stats: { ok:0, bad:0, to:0, sumRt:0, done:0 }
+  };
+
+  function renderCats(){
+    unitsBox.innerHTML = "";
+    for(const cat of CATS){
+      const wrap = document.createElement("div");
+      wrap.className = "cat";
+      wrap.dataset.cat = cat.key;
+
+      const head = document.createElement("div");
+      head.className = "catHead";
+
+      const left = document.createElement("div");
+      left.className = "left";
+
+      const catChk = document.createElement("input");
+      catChk.type = "checkbox";
+      catChk.checked = state.enabledCats.has(cat.key);
+      catChk.addEventListener("change", () => {
+        if(catChk.checked) state.enabledCats.add(cat.key);
+        else state.enabledCats.delete(cat.key);
+        renderCats();
+      });
+
+      const title = document.createElement("div");
+      title.className = "catTitle";
+      title.textContent = cat.name;
+
+      left.appendChild(catChk);
+      left.appendChild(title);
+
+      const badge = document.createElement("div");
+      badge.className = "pill mono";
+      const n = state.enabledUnits[cat.key].size;
+      badge.innerHTML = `可用單位：<strong>${n}</strong>`;
+
+      head.appendChild(left);
+      head.appendChild(badge);
+
+      const unitList = document.createElement("div");
+      unitList.className = "unitList";
+
+      const enabled = state.enabledCats.has(cat.key);
+      for(const u of cat.units){
+        const lab = document.createElement("label");
+        lab.className = "chk";
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.checked = state.enabledUnits[cat.key].has(u.key);
+        chk.disabled = !enabled;
+        chk.addEventListener("change", () => {
+          if(chk.checked) state.enabledUnits[cat.key].add(u.key);
+          else state.enabledUnits[cat.key].delete(u.key);
+          renderCats();
+        });
+        const txt = document.createElement("span");
+        txt.textContent = u.label;
+        lab.appendChild(chk);
+        lab.appendChild(txt);
+        unitList.appendChild(lab);
+      }
+
+      wrap.appendChild(head);
+      wrap.appendChild(unitList);
+      unitsBox.appendChild(wrap);
+    }
+  }
+
+  // === 出題 ===
+  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[randInt(0, arr.length-1)]; }
+
+  function unitMap(catKey){
+    const cat = CATS.find(c=>c.key===catKey);
+    const m = new Map();
+    for(const u of cat.units) m.set(u.key, u);
+    return m;
+  }
+
+  function enabledCatKeys(){
+    return Array.from(state.enabledCats).filter(k => state.enabledUnits[k].size >= 2);
+  }
+
+  function genValueFor(catKey, fromKey, toKey){
+    // 讓數字分布合理：避免老是超大/超小
+    if(catKey === "len"){
+      // m-based random in range ~ [0.001, 500000] m (1mm 到 500km)
+      const options = [
+        () => randInt(1, 999) / 1000,              // 0.001 ~ 0.999
+        () => randInt(1, 5000),                    // 1 ~ 5000
+        () => randInt(1, 500000)                   // 1 ~ 500000
+      ];
+      const base = pick(options)();
+      // 轉成 from 單位
+      const um = unitMap(catKey);
+      const f = um.get(fromKey).factorToBase;
+      return base / f;
+    }
+    if(catKey === "mass"){
+      // g-based range ~ [0.001, 5000000] g (1mg 到 5000kg)
+      const options = [
+        () => randInt(1, 999) / 1000,
+        () => randInt(1, 5000),
+        () => randInt(1, 5000000)
+      ];
+      const base = pick(options)();
+      const um = unitMap(catKey);
+      const f = um.get(fromKey).factorToBase;
+      return base / f;
+    }
+    if(catKey === "vol"){
+      // L-based range ~ [0.001, 500] L (1mL 到 500L)
+      const options = [
+        () => randInt(1, 999) / 1000,
+        () => randInt(1, 50),
+        () => randInt(1, 500)
+      ];
+      const base = pick(options)();
+      const um = unitMap(catKey);
+      const f = um.get(fromKey).factorToBase;
+      return base / f;
+    }
+    // time
+    // s-based range ~ [1, 200000] s
+    const options = [
+      () => randInt(1, 300),
+      () => randInt(1, 7200),
+      () => randInt(1, 200000)
+    ];
+    const base = pick(options)();
+    const um = unitMap(catKey);
+    const f = um.get(fromKey).factorToBase;
+    return base / f;
+  }
+
+  function toBase(catKey, unitKey, value){
+    const cat = CATS.find(c=>c.key===catKey);
+    const u = cat.units.find(x=>x.key===unitKey);
+    return value * u.factorToBase;
+  }
+  function fromBase(catKey, unitKey, baseValue){
+    const cat = CATS.find(c=>c.key===catKey);
+    const u = cat.units.find(x=>x.key===unitKey);
+    return baseValue / u.factorToBase;
+  }
+
+  function formatNice(x){
+    // 避免科學記號太常出現；保留最多 10 位有效數
+    if(!isFinite(x)) return String(x);
+    const ax = Math.abs(x);
+    if(ax === 0) return "0";
+    if(ax >= 1e9 || ax < 1e-6) return x.toExponential(6);
+    // toPrecision 可能會有尾巴，做個清理
+    let s = Number(x).toPrecision(10);
+    if(s.includes("e")) return s;
+    // 去掉多餘 0
+    if(s.includes(".")) s = s.replace(/\.?0+$/,"");
+    return s;
+  }
+
+  // === 計時 ===
+  function setTimerText(){
+    $("timer").textContent = state.running ? ( $("noTimer").checked ? "∞" : `${state.tLeft}s` ) : "--";
+  }
+
+  function stopTimer(){
+    if(state.timerId) clearInterval(state.timerId);
+    state.timerId = null;
+  }
+
+  function startTimer(){
+    stopTimer();
+    if($("noTimer").checked){
+      state.tLeft = Infinity;
+      setTimerText();
+      return;
+    }
+    const sec = Math.max(1, parseInt($("secPerQ").value || "15", 10));
+    state.tLeft = sec;
+    setTimerText();
+    state.timerId = setInterval(() => {
+      state.tLeft -= 1;
+      setTimerText();
+      if(state.tLeft <= 0){
+        stopTimer();
+        handleTimeout();
+      }
+    }, 1000);
+  }
+
+  // === 流程 ===
+  function setRunningUI(r){
+    state.running = r;
+    $("startBtn").disabled = r;
+    $("submitBtn").disabled = !r;
+    $("skipBtn").disabled = !r;
+    $("totalQ").disabled = r;
+    $("secPerQ").disabled = r;
+    $("noTimer").disabled = r;
+
+    // 類別/單位勾選鎖定
+    for(const inp of unitsBox.querySelectorAll("input")){
+      inp.disabled = r ? true : inp.disabled; // renderCats 會重新計算 disabled
+    }
+  }
+
+  function updateProgress(){
+    $("progress").textContent = `${state.idx} / ${state.total}`;
+  }
+
+  function setModeText(t){ $("modeText").textContent = t; }
+
+  function nextQuestion(){
+    $("feedback").textContent = "";
+    $("answer").value = "";
+    $("answer").focus();
+
+    const cats = enabledCatKeys();
+    if(cats.length === 0){
+      $("question").textContent = "⚠️ 你至少要啟用 1 個類別，且該類別至少勾選 2 個單位。";
+      finishRun(false);
+      return;
+    }
+
+    const catKey = pick(cats);
+    const unitKeys = Array.from(state.enabledUnits[catKey]);
+
+    const from = pick(unitKeys);
+    let to = pick(unitKeys);
+    while(to === from) to = pick(unitKeys);
+
+    const value = genValueFor(catKey, from, to);
+    const base = toBase(catKey, from, value);
+    const correct = fromBase(catKey, to, base);
+
+    state.current = { catKey, from, to, value, correct };
+    state.qStartMs = performance.now();
+
+    const catName = CATS.find(c=>c.key===catKey).name;
+    $("question").textContent = `【${catName}】把 ${formatNice(value)} ${from} 換算成 ${to} ＝ ？`;
+    startTimer();
+  }
+
+  function addLogRow({num, qText, your, correct, result, rt, timeUsed}){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="mono">${num}</td>
+      <td>${qText}</td>
+      <td class="right mono">${your}</td>
+      <td class="right mono">${correct}</td>
+      <td class="mono">${result}</td>
+      <td class="right mono">${rt}</td>
+      <td class="right mono">${timeUsed}</td>
+    `;
+    $("log").prepend(tr);
+  }
+
+  function updateStatsUI(){
+    const {ok,bad,to, sumRt, done} = state.stats;
+    $("okN").textContent = ok;
+    $("badN").textContent = bad;
+    $("toN").textContent = to;
+
+    const acc = done ? (ok / done * 100) : 0;
+    $("acc").textContent = `${acc.toFixed(1)}%`;
+
+    const avg = done ? (sumRt / done) : 0;
+    $("avg").textContent = `${avg.toFixed(2)}s`;
+  }
+
+  function isCorrect(user, correct){
+    // 相對誤差 <= 0.5% 或 絕對誤差極小
+    const absErr = Math.abs(user - correct);
+    if(absErr <= 1e-9) return true;
+    const denom = Math.max(1e-9, Math.abs(correct));
+    const relErr = absErr / denom;
+    return relErr <= 0.005;
+  }
+
+  function submitAnswer(kind){ // kind: "submit" | "skip" | "timeout"
+    if(!state.running || !state.current) return;
+
+    stopTimer();
+    const q = state.current;
+    const qText = `把 ${formatNice(q.value)} ${q.from} 換算成 ${q.to}`;
+    const correctVal = q.correct;
+
+    const now = performance.now();
+    const rt = (now - state.qStartMs) / 1000;
+    const timeUsed = $("noTimer").checked ? rt : (parseInt($("secPerQ").value||"0",10) - Math.max(0, state.tLeft));
+    const timeUsedText = $("noTimer").checked ? "--" : `${Math.max(0, timeUsed)}s`;
+
+    let yourText = "--";
+    let resultText = "--";
+    let fb = "";
+
+    if(kind === "skip"){
+      state.stats.bad += 1;
+      state.stats.done += 1;
+      state.stats.sumRt += rt;
+      yourText = "（跳過）";
+      resultText = `<span class="warn">SKIP</span>`;
+      fb = `已跳過。正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
+    } else if(kind === "timeout"){
+      state.stats.to += 1;
+      state.stats.done += 1;
+      state.stats.sumRt += rt;
+      yourText = "（超時）";
+      resultText = `<span class="bad">TIME</span>`;
+      fb = `超時！正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
+    } else {
+      const raw = $("answer").value.trim().replace(/,/g,"");
+      const userVal = Number(raw);
+      yourText = raw || "（空白）";
+
+      if(!isFinite(userVal)){
+        state.stats.bad += 1;
+        state.stats.done += 1;
+        state.stats.sumRt += rt;
+        resultText = `<span class="bad">錯</span>`;
+        fb = `輸入不是數字。正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
+      } else {
+        const ok = isCorrect(userVal, correctVal);
+        if(ok){
+          state.stats.ok += 1;
+          resultText = `<span class="ok">對</span>`;
+          fb = `答對 ✅  正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
+        } else {
+          state.stats.bad += 1;
+          resultText = `<span class="bad">錯</span>`;
+          fb = `答錯 ❌  正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
+        }
+        state.stats.done += 1;
+        state.stats.sumRt += rt;
+      }
+    }
+
+    addLogRow({
+      num: state.idx,
+      qText,
+      your: yourText,
+      correct: `${formatNice(correctVal)} ${q.to}`,
+      result: resultText,
+      rt: rt.toFixed(2),
+      timeUsed: timeUsedText
+    });
+
+    $("feedback").innerHTML = fb;
+    updateStatsUI();
+
+    if(state.idx >= state.total){
+      finishRun(true);
+      return;
+    }
+
+    state.idx += 1;
+    updateProgress();
+    nextQuestion();
+  }
+
+  function handleTimeout(){
+    submitAnswer("timeout");
+  }
+
+  function finishRun(showDone){
+    stopTimer();
+    setRunningUI(false);
+    state.running = false;
+    setModeText(showDone ? "已完成" : "未開始");
+    $("submitBtn").disabled = true;
+    $("skipBtn").disabled = true;
+    setTimerText();
+  }
+
+  // === 按鈕事件 ===
+  $("startBtn").addEventListener("click", () => {
+    renderCats(); // 重新套用 disabled 狀態
+    const total = Math.max(1, parseInt($("totalQ").value || "10", 10));
+    state.total = total;
+    state.idx = 1;
+    state.current = null;
+
+    $("log").innerHTML = "";
+    $("feedback").textContent = "";
+
+    setRunningUI(true);
+    setModeText("進行中");
+    updateProgress();
+    nextQuestion();
+  });
+
+  $("submitBtn").addEventListener("click", () => submitAnswer("submit"));
+  $("skipBtn").addEventListener("click", () => submitAnswer("skip"));
+
+  $("answer").addEventListener("keydown", (e) => {
+    if(e.key === "Enter" && !$("submitBtn").disabled){
+      submitAnswer("submit");
+    }
+  });
+
+  $("resetBtn").addEventListener("click", () => {
+    stopTimer();
+    state.stats = { ok:0, bad:0, to:0, sumRt:0, done:0 };
+    updateStatsUI();
+    $("log").innerHTML = "";
+    $("question").textContent = "請按「開始」";
+    $("feedback").textContent = "";
+    $("progress").textContent = "0 / 0";
+    setModeText("未開始");
+    setTimerText();
+    state.running = false;
+    setRunningUI(false);
+    renderCats();
+  });
+
+  // === PWA：註冊 Service Worker ===
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    });
+  }
+
+  // init
+  renderCats();
+  updateStatsUI();
+  setTimerText();
+})();
+</script>
+</body>
+</html>
