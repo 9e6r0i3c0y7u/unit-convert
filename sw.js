@@ -1,4 +1,4 @@
-const CACHE = "unit-convert-pwa-v1";
+const CACHE = "unit-convert-pwa-v2";
 const ASSETS = [
   "./",
   "./index.html",
