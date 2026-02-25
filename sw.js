@@ -1,4 +1,4 @@
-const CACHE = "unit-convert-v1";
+const CACHE = "unit-convert-pwa-v1";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,19 +9,25 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
-  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => k === CACHE ? null : caches.delete(k))))
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => (k === CACHE ? null : caches.delete(k))))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (e) => {
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request))
+    caches.match(e.request).then(res => res || fetch(e.request).then(netRes => {
+      const copy = netRes.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copy));
+      return netRes;
+    }).catch(() => caches.match("./index.html")))
   );
 });
