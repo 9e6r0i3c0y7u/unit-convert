@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#0b1020" />
   <title>單位換算練習（PWA）</title>
   <link rel="manifest" href="manifest.webmanifest">
-
   <style>
     :root{
       --bg:#071022;
@@ -19,660 +18,899 @@
       --btn2:#2a3550;
       --ok:#27c07d;
       --bad:#ff5c7a;
-      --warn:#ffcc66;
+      --warn:#ffbf4d;
     }
     *{box-sizing:border-box}
     body{
       margin:0; color:var(--text);
       background:radial-gradient(1200px 600px at 30% 20%, #0e2a57 0%, var(--bg) 55%);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", Arial, sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial;
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    h1{margin:6px 0 14px;font-size:20px;font-weight:800;letter-spacing:.5px}
-    .grid{display:grid;grid-template-columns: 420px 1fr; gap:14px}
+    .wrap{max-width:1080px;margin:0 auto;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    h1{font-size:20px;margin:0}
+    .pill{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:6px 10px;border-radius:999px}
+    .grid{display:grid;grid-template-columns: 1.1fr 0.9fr;gap:14px;margin-top:14px}
     @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
-
     .card{
-      background:linear-gradient(180deg,var(--card),var(--card2));
-      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(32,50,85,0.9);
       border-radius:16px;
       padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
+    .card h2{font-size:14px;margin:0 0 10px 0;color:#cfe2ff}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .row > *{flex:0 0 auto}
-    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type="number"], input[type="text"]{
-      background:#0a1430;border:1px solid var(--line);color:var(--text);
-      border-radius:10px;padding:10px 10px;outline:none; width:110px;
+    label{font-size:13px;color:var(--muted)}
+    select,input[type="number"],input[type="text"]{
+      background:var(--card2); color:var(--text);
+      border:1px solid var(--line); border-radius:10px;
+      padding:8px 10px; outline:none;
     }
     input[type="text"]{width:220px}
+    input[type="number"]{width:110px}
     .btn{
-      border:1px solid transparent;border-radius:12px;
-      padding:10px 12px; cursor:pointer; font-weight:700;
-      background:var(--btn); color:white;
+      background:var(--btn); color:white; border:none;
+      padding:10px 12px; border-radius:12px; cursor:pointer;
+      font-weight:600;
     }
-    .btn.secondary{background:var(--btn2);border-color:var(--line)}
-    .btn:disabled{opacity:.55;cursor:not-allowed}
-    .pill{
-      padding:6px 10px;border:1px solid var(--line);
-      border-radius:999px;background:#0a1430;color:var(--muted);font-size:12px
+    .btn.secondary{background:var(--btn2)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{
+      background:var(--card2); border:1px solid var(--line);
+      padding:8px 10px;border-radius:999px;color:var(--muted);
+      cursor:pointer; user-select:none;
     }
-    .bigQ{
-      font-size:18px;font-weight:800;line-height:1.35;margin:8px 0 10px;
+    .tab.active{background:rgba(45,108,255,0.18); color:#dfeaff; border-color:rgba(45,108,255,0.55)}
+    .twoCols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:560px){ .twoCols{grid-template-columns:1fr} }
+    .mini{font-size:12px;color:var(--muted)}
+    .question{
+      font-size:26px; font-weight:800;
+      letter-spacing:0.2px;
+      margin:8px 0 6px;
     }
-    .hint{color:var(--muted);font-size:12px;line-height:1.4}
-    .status{
-      display:flex;flex-wrap:wrap;gap:8px;margin-top:10px
+    .sub{
+      color:var(--muted); font-size:13px;
     }
-    .status .pill strong{color:var(--text)}
-    .ok{color:var(--ok);font-weight:800}
-    .bad{color:var(--bad);font-weight:800}
-    .warn{color:var(--warn);font-weight:800}
-
-    .unitsBox{margin-top:10px;display:grid;grid-template-columns:1fr;gap:10px}
-    .cat{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px;
-      background:#0a1430;
+    .statline{
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-size:13px; color:var(--muted);
+      margin-top:10px;
     }
-    .catHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .catHead .left{display:flex;align-items:center;gap:10px}
-    .catTitle{font-weight:900}
-    .unitList{margin-top:8px;display:flex;flex-wrap:wrap;gap:10px}
-    .chk{display:flex;align-items:center;gap:8px;color:var(--text);font-size:13px}
-    .chk input{transform:scale(1.05)}
-
-    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
-    th,td{border-bottom:1px solid var(--line);padding:8px 6px;vertical-align:top}
-    th{color:var(--muted);text-align:left;font-weight:700}
-    td{color:var(--text)}
-    .right{ text-align:right }
-    .mono{font-variant-numeric: tabular-nums}
-    .small{font-size:12px;color:var(--muted)}
+    .statline b{color:var(--text)}
+    .badge{padding:4px 8px;border-radius:999px;border:1px solid var(--line)}
+    .badge.ok{border-color:rgba(39,192,125,0.6);color:#c8ffe6}
+    .badge.bad{border-color:rgba(255,92,122,0.6);color:#ffd0d8}
+    .badge.warn{border-color:rgba(255,191,77,0.6);color:#ffe7bd}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid rgba(32,50,85,0.65);padding:8px 6px;font-size:12px;color:var(--muted);text-align:left;vertical-align:top}
+    th{color:#cfe2ff;font-weight:700}
+    .right{text-align:right}
+    .muted{color:var(--muted)}
+    .checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .chip{
+      display:flex;gap:6px;align-items:center;
+      background:var(--card2);border:1px solid var(--line);
+      padding:6px 10px;border-radius:999px;font-size:13px;color:var(--muted);
+    }
+    .chip input{transform:translateY(0.5px)}
+    .hint{
+      margin-top:8px;
+      font-size:12px; color:#cfe2ff;
+      background:rgba(45,108,255,0.10);
+      border:1px dashed rgba(45,108,255,0.45);
+      padding:8px 10px;border-radius:12px;
+      display:none;
+      white-space:pre-wrap;
+    }
+    .hint.show{display:block}
   </style>
 </head>
+
 <body>
 <div class="wrap">
-  <h1>單位換算練習（長度 / 重量 / 體積 / 時間）</h1>
+  <header>
+    <h1>單位換算練習（PWA）</h1>
+    <div class="pill">定向模式 / 隨機模式｜避免小數：用複合單位出題</div>
+  </header>
 
   <div class="grid">
-    <!-- 左：設定 -->
-    <div class="card">
-      <div class="label">出題設定</div>
-      <div class="row">
-        <div>
-          <div class="label">題數</div>
-          <input id="totalQ" type="number" min="1" max="999" value="10" />
-        </div>
-        <div>
-          <div class="label">每題限時（秒）</div>
-          <input id="secPerQ" type="number" min="1" max="9999" value="15" />
-        </div>
-        <label class="chk" style="margin-top:18px">
-          <input id="noTimer" type="checkbox" />
-          不限時
-        </label>
+    <!-- 設定 -->
+    <section class="card" id="settingsCard">
+      <h2>設定</h2>
+
+      <div class="tabs">
+        <div class="tab active" data-mode="directed">定向模式</div>
+        <div class="tab" data-mode="random">隨機模式</div>
       </div>
 
-      <div class="unitsBox" id="unitsBox"></div>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label>題數</label><br/>
+          <input id="totalQ" type="number" min="1" max="200" value="20"/>
+        </div>
+        <div>
+          <label>每題時間（秒）</label><br/>
+          <input id="timePerQ" type="number" min="1" max="999" value="20"/>
+        </div>
+        <div style="padding-top:20px">
+          <label class="chip" style="cursor:pointer">
+            <input id="noTimer" type="checkbox"/> 不限時
+          </label>
+        </div>
+        <div>
+          <label>出題位數（主數字）</label><br/>
+          <select id="digits">
+            <option value="1">1 位數</option>
+            <option value="2">2 位數</option>
+            <option value="3" selected>3 位數</option>
+          </select>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(32,50,85,0.6);margin:12px 0"/>
+
+      <!-- 定向模式 -->
+      <div id="directedPanel">
+        <div class="row">
+          <label>類別</label>
+          <select id="catDirected"></select>
+          <span class="mini">左選出題單位、右選要求單位</span>
+        </div>
+
+        <div class="twoCols" style="margin-top:10px">
+          <div>
+            <label>出題單位（左）</label><br/>
+            <select id="fromUnit"></select>
+          </div>
+          <div>
+            <label>要求單位（右）</label><br/>
+            <select id="toUnit"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 隨機模式 -->
+      <div id="randomPanel" style="display:none">
+        <div class="mini">勾選要出題的類別與可用單位（同一類別內隨機 from/to）</div>
+
+        <div id="randomBlocks" style="margin-top:10px"></div>
+      </div>
 
       <div class="row" style="margin-top:12px">
         <button class="btn" id="startBtn">開始</button>
-        <button class="btn secondary" id="resetBtn">重置統計</button>
-        <span class="pill mono">狀態：<strong id="modeText">未開始</strong></span>
+        <button class="btn secondary" id="resetBtn">重置紀錄</button>
+        <span class="mini muted" id="saveHint">設定會自動保存</span>
       </div>
 
-      <div class="hint" style="margin-top:10px">
-        規則：先勾選「類別」，再勾選該類別允許出現的「單位」。<br/>
-        出題會在你勾選的類別中隨機挑一類，並在該類可用單位中隨機挑「來源單位 → 目標單位」。
-      </div>
-    </div>
+      <div class="hint" id="factorHint"></div>
+    </section>
 
-    <!-- 右：題目/作答/統計 -->
-    <div class="card">
+    <!-- 作答區 -->
+    <section class="card" id="playCard">
+      <h2>作答</h2>
+
       <div class="row" style="justify-content:space-between">
-        <span class="pill mono">進度：<strong id="progress">0 / 0</strong></span>
-        <span class="pill mono">剩餘：<strong id="timer">--</strong></span>
+        <div class="mini" id="progress">尚未開始</div>
+        <div class="mini" id="timerBox">⏱️ --</div>
       </div>
 
-      <div class="bigQ" id="question">請按「開始」</div>
+      <div class="question" id="question">—</div>
+      <div class="sub" id="qSub">請按「開始」</div>
 
-      <div class="row">
-        <div>
-          <div class="label">你的答案（可小數）</div>
-          <input id="answer" type="text" inputmode="decimal" placeholder="例如 1.23" />
-        </div>
+      <div class="row" style="margin-top:12px">
+        <input id="answer" type="text" inputmode="numeric" placeholder="輸入答案（整數）"/>
         <button class="btn" id="submitBtn" disabled>送出</button>
         <button class="btn secondary" id="skipBtn" disabled>跳過</button>
+        <label class="chip" style="cursor:pointer">
+          <input id="showHint" type="checkbox"/> 顯示換算提示
+        </label>
       </div>
 
-      <div class="hint" id="feedback" style="margin-top:8px"></div>
-
-      <div class="status mono">
-        <span class="pill">答對：<strong id="okN">0</strong></span>
-        <span class="pill">答錯：<strong id="badN">0</strong></span>
-        <span class="pill">超時：<strong id="toN">0</strong></span>
-        <span class="pill">正確率：<strong id="acc">0.0%</strong></span>
-        <span class="pill">平均反應：<strong id="avg">0.00s</strong></span>
+      <div class="statline" style="margin-top:12px">
+        <span class="badge">答對：<b id="ok">0</b></span>
+        <span class="badge">答錯：<b id="bad">0</b></span>
+        <span class="badge">超時：<b id="timeout">0</b></span>
+        <span class="badge">正確率：<b id="acc">0.0%</b></span>
+        <span class="badge">平均反應：<b id="avg">0.00s</b></span>
       </div>
 
       <table>
         <thead>
           <tr>
-            <th style="width:52px">#</th>
+            <th class="right">#</th>
             <th>題目</th>
-            <th class="right">你的答案</th>
-            <th class="right">正確答案</th>
-            <th style="width:70px">結果</th>
-            <th class="right" style="width:90px">反應(秒)</th>
-            <th class="right" style="width:70px">時間</th>
+            <th>你的答案</th>
+            <th>正確答案</th>
+            <th>結果</th>
+            <th class="right">反應(秒)</th>
+            <th class="right">時間</th>
           </tr>
         </thead>
         <tbody id="log"></tbody>
       </table>
+    </section>
+  </div>
 
-      <div class="small" style="margin-top:10px">
-        說明：判定採「相對誤差 ≤ 0.5% 或絕對誤差 ≤ 1e-9」為答對（方便處理小數）。  
-      </div>
-    </div>
+  <div class="mini muted" style="margin-top:12px">
+    ✅ 特色：如果換算會產生小數，題目會改用「複合單位」表示（例如 6 m 50 cm），讓答案仍然是整數。
   </div>
 </div>
 
 <script>
-(() => {
-  const $ = (id) => document.getElementById(id);
+/** =========================
+ *  單位資料（同一類別內換算）
+ *  我們用 "base" 做最小單位整數表示，避免小數。
+ *  顯示時若無法整除 fromUnit，會用「fromUnit + 下一階小單位」表示（複合單位）。
+ * ========================= */
 
-  // === 單位表：全部換成「基準單位」===
-  // 長度基準：m；重量基準：g；體積基準：L；時間基準：s
-  const CATS = [
-    {
-      key: "len",
-      name: "長度",
-      base: "m",
-      units: [
-        { key:"km", label:"km", factorToBase: 1000 },     // 1 km = 1000 m
-        { key:"m",  label:"m",  factorToBase: 1 },
-        { key:"mm", label:"mm", factorToBase: 0.001 }    // 1 mm = 0.001 m
-      ]
-    },
-    {
-      key: "mass",
-      name: "重量",
-      base: "g",
-      units: [
-        { key:"kg", label:"kg", factorToBase: 1000 },     // 1 kg = 1000 g
-        { key:"g",  label:"g",  factorToBase: 1 },
-        { key:"mg", label:"mg", factorToBase: 0.001 }    // 1 mg = 0.001 g
-      ]
-    },
-    {
-      key: "vol",
-      name: "體積",
-      base: "L",
-      units: [
-        { key:"L",  label:"L",  factorToBase: 1 },
-        { key:"mL", label:"mL", factorToBase: 0.001 }    // 1 mL = 0.001 L
-      ]
-    },
-    {
-      key: "time",
-      name: "時間",
-      base: "s",
-      units: [
-        { key:"s",   label:"s",   factorToBase: 1 },
-        { key:"min", label:"min", factorToBase: 60 },
-        { key:"h",   label:"h",   factorToBase: 3600 }
-      ]
+const CATS = {
+  length: {
+    name: "長度",
+    units: [
+      { key:"km", label:"km", factor: 1000*100*10 }, // base = mm
+      { key:"m",  label:"m",  factor: 100*10 },
+      { key:"cm", label:"cm", factor: 10 },
+      { key:"mm", label:"mm", factor: 1 }
+    ],
+    baseLabel: "mm"
+  },
+  weight: {
+    name: "重量",
+    units: [
+      { key:"kg", label:"kg", factor: 1000 }, // base = g
+      { key:"g",  label:"g",  factor: 1 }
+    ],
+    baseLabel: "g"
+  },
+  volume: {
+    name: "體積",
+    units: [
+      { key:"m3",  label:"m³",  factor: 1000*1000*1000 }, // base = cm^3 (= mL)
+      { key:"l",   label:"L",   factor: 1000 },
+      { key:"ml",  label:"mL",  factor: 1 },              // = cm^3
+      { key:"cm3", label:"cm³", factor: 1 }
+    ],
+    baseLabel: "cm³"
+  },
+  time: {
+    name: "時間",
+    units: [
+      { key:"day", label:"day", factor: 24*60*60 }, // base = s
+      { key:"hr",  label:"hr",  factor: 60*60 },
+      { key:"min", label:"min", factor: 60 },
+      { key:"s",   label:"s",   factor: 1 }
+    ],
+    baseLabel: "s"
+  },
+  area: {
+    name: "面積",
+    units: [
+      { key:"m2",  label:"m²",  factor: 10000 }, // base = cm^2
+      { key:"cm2", label:"cm²", factor: 1 }
+    ],
+    baseLabel: "cm²"
+  }
+};
+
+function $(id){ return document.getElementById(id); }
+function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function nowTimeStr(){
+  const d=new Date();
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+function getUnit(catKey, unitKey){
+  return CATS[catKey].units.find(u=>u.key===unitKey);
+}
+function unitIndex(catKey, unitKey){
+  return CATS[catKey].units.findIndex(u=>u.key===unitKey);
+}
+function nextSmallerUnit(catKey, unitKey){
+  const i = unitIndex(catKey, unitKey);
+  if(i<0) return null;
+  const units = CATS[catKey].units;
+  return (i < units.length-1) ? units[i+1] : null;
+}
+
+/** 產生主數字（1/2/3位數） */
+function genMainByDigits(digits){
+  digits = Number(digits);
+  if(digits===1) return randInt(1,9);
+  if(digits===2) return randInt(10,99);
+  return randInt(100,999);
+}
+
+/**
+ * 生成一題：
+ * - catKey: 類別
+ * - fromKey/toKey: 單位
+ * - digits: 主數字位數
+ * 目標：答案一定是整數，題目避免小數（必要時用複合單位）
+ */
+function generateQuestion(catKey, fromKey, toKey, digits){
+  const cat = CATS[catKey];
+  const fromU = getUnit(catKey, fromKey);
+  const toU   = getUnit(catKey, toKey);
+
+  // 1) 決定要用「主數字」多少（1/2/3位數）
+  const main = genMainByDigits(digits);
+
+  // 2) 我們先用 base 來組裝題目數值，確保答案為整數
+  //    baseValue = main * fromFactor + sub * nextFactor (如果要用複合單位)
+  //    並且要求 baseValue % toFactor == 0，才能保證答案為整數
+  const nextU = nextSmallerUnit(catKey, fromKey);
+
+  // sub 的上限：如果 next 存在，sub 可在 [0, ratio-1] 之間
+  // ratio = fromFactor / nextFactor
+  let maxSub = 0;
+  let ratio = 0;
+  if(nextU){
+    ratio = Math.floor(fromU.factor / nextU.factor);
+    maxSub = Math.max(0, ratio - 1);
+  }
+
+  // 3) 嘗試找一個 sub 讓答案整數（找不到就 sub=0，且必要時換一個 main）
+  let sub = 0;
+  let baseValue = main * fromU.factor;
+
+  const tries = 300;
+  let ok = false;
+
+  for(let t=0;t<tries;t++){
+    // 有 next 才會考慮 sub
+    let candidateSub = 0;
+    if(nextU && maxSub>0){
+      candidateSub = randInt(0, maxSub);
     }
-  ];
 
-  // === UI 產生：類別勾選 + 單位勾選 ===
-  const unitsBox = $("unitsBox");
-  const state = {
-    enabledCats: new Set(["len","mass","vol","time"]),
-    enabledUnits: {
-      len: new Set(["km","m","mm"]),
-      mass: new Set(["kg","g","mg"]),
-      vol: new Set(["L","mL"]),
-      time: new Set(["s","min","h"])
-    },
-    running: false,
-    idx: 0,
-    total: 0,
-    tLeft: 0,
-    timerId: null,
-    qStartMs: 0,
-    current: null, // {catKey, from, to, value, correct}
-    stats: { ok:0, bad:0, to:0, sumRt:0, done:0 }
+    const candidateBase = main * fromU.factor + candidateSub * (nextU ? nextU.factor : 0);
+
+    // 答案要整數
+    if(candidateBase % toU.factor === 0){
+      sub = candidateSub;
+      baseValue = candidateBase;
+      ok = true;
+      break;
+    }
+
+    // 若一直不行，偶爾換 main（仍維持位數）
+    if(t % 30 === 29){
+      const newMain = genMainByDigits(digits);
+      // 不要讓 main 變成 0 或破壞位數（genMainByDigits 已保證）
+      // 但避免同一個 main 卡死：直接覆蓋
+      //（注意：這裡只改 main 變數的值會更乾淨，但 main 是 const，所以用小技巧）
+      // => 改用暫存
+    }
+  }
+
+  // 上面 const main 不能改，所以如果沒成功就用保守策略：直接找 baseValue 讓 from 顯示合理
+  if(!ok){
+    // 退而求其次：固定 sub=0，找一個 baseValue 同時讓答案整數
+    // baseValue = main * fromFactor * k，挑 k 讓可整除 toFactor，且別太大
+    let kFound = 1;
+    for(let k=1;k<=50;k++){
+      const candidateBase = main * fromU.factor * k;
+      if(candidateBase % toU.factor === 0){
+        kFound = k; baseValue = candidateBase; break;
+      }
+    }
+  }
+
+  const ans = baseValue / toU.factor;
+
+  // 4) 決定題目顯示字串：若 sub>0 用複合單位（from + next）
+  let displayValue = "";
+  if(nextU && (baseValue % fromU.factor !== 0)){
+    // 用 baseValue 拆成 mainPart + subPart
+    const mainPart = Math.floor(baseValue / fromU.factor);
+    const rem = baseValue % fromU.factor;
+    const subPart = Math.floor(rem / nextU.factor);
+    // 題目像：6 m 50 cm
+    displayValue = `${mainPart} ${fromU.label} ${subPart} ${nextU.label}`;
+  }else{
+    // 單一單位
+    const v = Math.floor(baseValue / fromU.factor);
+    displayValue = `${v} ${fromU.label}`;
+  }
+
+  const qText = `${displayValue} = ? ${toU.label}`;
+
+  // 5) 提示（顯示相鄰換算）
+  const hint = buildHint(catKey);
+
+  return {
+    catKey, fromKey, toKey,
+    qText,
+    ans,
+    hint,
+    baseValue
   };
+}
 
-  function renderCats(){
-    unitsBox.innerHTML = "";
-    for(const cat of CATS){
-      const wrap = document.createElement("div");
-      wrap.className = "cat";
-      wrap.dataset.cat = cat.key;
-
-      const head = document.createElement("div");
-      head.className = "catHead";
-
-      const left = document.createElement("div");
-      left.className = "left";
-
-      const catChk = document.createElement("input");
-      catChk.type = "checkbox";
-      catChk.checked = state.enabledCats.has(cat.key);
-      catChk.addEventListener("change", () => {
-        if(catChk.checked) state.enabledCats.add(cat.key);
-        else state.enabledCats.delete(cat.key);
-        renderCats();
-      });
-
-      const title = document.createElement("div");
-      title.className = "catTitle";
-      title.textContent = cat.name;
-
-      left.appendChild(catChk);
-      left.appendChild(title);
-
-      const badge = document.createElement("div");
-      badge.className = "pill mono";
-      const n = state.enabledUnits[cat.key].size;
-      badge.innerHTML = `可用單位：<strong>${n}</strong>`;
-
-      head.appendChild(left);
-      head.appendChild(badge);
-
-      const unitList = document.createElement("div");
-      unitList.className = "unitList";
-
-      const enabled = state.enabledCats.has(cat.key);
-      for(const u of cat.units){
-        const lab = document.createElement("label");
-        lab.className = "chk";
-        const chk = document.createElement("input");
-        chk.type = "checkbox";
-        chk.checked = state.enabledUnits[cat.key].has(u.key);
-        chk.disabled = !enabled;
-        chk.addEventListener("change", () => {
-          if(chk.checked) state.enabledUnits[cat.key].add(u.key);
-          else state.enabledUnits[cat.key].delete(u.key);
-          renderCats();
-        });
-        const txt = document.createElement("span");
-        txt.textContent = u.label;
-        lab.appendChild(chk);
-        lab.appendChild(txt);
-        unitList.appendChild(lab);
-      }
-
-      wrap.appendChild(head);
-      wrap.appendChild(unitList);
-      unitsBox.appendChild(wrap);
-    }
+function buildHint(catKey){
+  const units = CATS[catKey].units;
+  // 顯示相鄰提示：1 A = k B
+  let lines = [];
+  for(let i=0;i<units.length-1;i++){
+    const big = units[i];
+    const small = units[i+1];
+    const k = big.factor / small.factor;
+    // 只顯示整數換算（我們的設計都會是整數）
+    lines.push(`👉 1 ${big.label} = ${k} ${small.label}`);
   }
+  return lines.join("\n");
+}
 
-  // === 出題 ===
-  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
-  function pick(arr){ return arr[randInt(0, arr.length-1)]; }
+/** =========================
+ *  UI & 狀態
+ * ========================= */
+let mode = "directed";
+let running = false;
 
-  function unitMap(catKey){
-    const cat = CATS.find(c=>c.key===catKey);
-    const m = new Map();
-    for(const u of cat.units) m.set(u.key, u);
-    return m;
-  }
+let total = 20;
+let timePerQ = 20;
+let noTimer = false;
+let digits = 3;
 
-  function enabledCatKeys(){
-    return Array.from(state.enabledCats).filter(k => state.enabledUnits[k].size >= 2);
-  }
+let qIndex = 0;
+let current = null;
+let tStart = 0;
+let timer = null;
+let remain = 0;
 
-  function genValueFor(catKey, fromKey, toKey){
-    // 讓數字分布合理：避免老是超大/超小
-    if(catKey === "len"){
-      // m-based random in range ~ [0.001, 500000] m (1mm 到 500km)
-      const options = [
-        () => randInt(1, 999) / 1000,              // 0.001 ~ 0.999
-        () => randInt(1, 5000),                    // 1 ~ 5000
-        () => randInt(1, 500000)                   // 1 ~ 500000
-      ];
-      const base = pick(options)();
-      // 轉成 from 單位
-      const um = unitMap(catKey);
-      const f = um.get(fromKey).factorToBase;
-      return base / f;
-    }
-    if(catKey === "mass"){
-      // g-based range ~ [0.001, 5000000] g (1mg 到 5000kg)
-      const options = [
-        () => randInt(1, 999) / 1000,
-        () => randInt(1, 5000),
-        () => randInt(1, 5000000)
-      ];
-      const base = pick(options)();
-      const um = unitMap(catKey);
-      const f = um.get(fromKey).factorToBase;
-      return base / f;
-    }
-    if(catKey === "vol"){
-      // L-based range ~ [0.001, 500] L (1mL 到 500L)
-      const options = [
-        () => randInt(1, 999) / 1000,
-        () => randInt(1, 50),
-        () => randInt(1, 500)
-      ];
-      const base = pick(options)();
-      const um = unitMap(catKey);
-      const f = um.get(fromKey).factorToBase;
-      return base / f;
-    }
-    // time
-    // s-based range ~ [1, 200000] s
-    const options = [
-      () => randInt(1, 300),
-      () => randInt(1, 7200),
-      () => randInt(1, 200000)
-    ];
-    const base = pick(options)();
-    const um = unitMap(catKey);
-    const f = um.get(fromKey).factorToBase;
-    return base / f;
-  }
+let stats = { ok:0, bad:0, timeout:0, sumRT:0, done:0 };
 
-  function toBase(catKey, unitKey, value){
-    const cat = CATS.find(c=>c.key===catKey);
-    const u = cat.units.find(x=>x.key===unitKey);
-    return value * u.factorToBase;
-  }
-  function fromBase(catKey, unitKey, baseValue){
-    const cat = CATS.find(c=>c.key===catKey);
-    const u = cat.units.find(x=>x.key===unitKey);
-    return baseValue / u.factorToBase;
-  }
+function setMode(m){
+  mode = m;
+  document.querySelectorAll(".tab").forEach(el=>{
+    el.classList.toggle("active", el.dataset.mode===m);
+  });
+  $("directedPanel").style.display = (m==="directed") ? "block" : "none";
+  $("randomPanel").style.display   = (m==="random") ? "block" : "none";
+  saveSettings();
+}
 
-  function formatNice(x){
-    // 避免科學記號太常出現；保留最多 10 位有效數
-    if(!isFinite(x)) return String(x);
-    const ax = Math.abs(x);
-    if(ax === 0) return "0";
-    if(ax >= 1e9 || ax < 1e-6) return x.toExponential(6);
-    // toPrecision 可能會有尾巴，做個清理
-    let s = Number(x).toPrecision(10);
-    if(s.includes("e")) return s;
-    // 去掉多餘 0
-    if(s.includes(".")) s = s.replace(/\.?0+$/,"");
-    return s;
-  }
+function loadSettings(){
+  try{
+    const s = JSON.parse(localStorage.getItem("uc_settings")||"{}");
+    if(s.totalQ) $("totalQ").value = s.totalQ;
+    if(s.timePerQ) $("timePerQ").value = s.timePerQ;
+    if(typeof s.noTimer==="boolean") $("noTimer").checked = s.noTimer;
+    if(s.digits) $("digits").value = s.digits;
+    if(s.mode) setMode(s.mode);
 
-  // === 計時 ===
-  function setTimerText(){
-    $("timer").textContent = state.running ? ( $("noTimer").checked ? "∞" : `${state.tLeft}s` ) : "--";
-  }
+    if(s.directedCat) $("catDirected").value = s.directedCat;
 
-  function stopTimer(){
-    if(state.timerId) clearInterval(state.timerId);
-    state.timerId = null;
-  }
-
-  function startTimer(){
-    stopTimer();
-    if($("noTimer").checked){
-      state.tLeft = Infinity;
-      setTimerText();
-      return;
-    }
-    const sec = Math.max(1, parseInt($("secPerQ").value || "15", 10));
-    state.tLeft = sec;
-    setTimerText();
-    state.timerId = setInterval(() => {
-      state.tLeft -= 1;
-      setTimerText();
-      if(state.tLeft <= 0){
-        stopTimer();
-        handleTimeout();
-      }
-    }, 1000);
-  }
-
-  // === 流程 ===
-  function setRunningUI(r){
-    state.running = r;
-    $("startBtn").disabled = r;
-    $("submitBtn").disabled = !r;
-    $("skipBtn").disabled = !r;
-    $("totalQ").disabled = r;
-    $("secPerQ").disabled = r;
-    $("noTimer").disabled = r;
-
-    // 類別/單位勾選鎖定
-    for(const inp of unitsBox.querySelectorAll("input")){
-      inp.disabled = r ? true : inp.disabled; // renderCats 會重新計算 disabled
-    }
-  }
-
-  function updateProgress(){
-    $("progress").textContent = `${state.idx} / ${state.total}`;
-  }
-
-  function setModeText(t){ $("modeText").textContent = t; }
-
-  function nextQuestion(){
-    $("feedback").textContent = "";
-    $("answer").value = "";
-    $("answer").focus();
-
-    const cats = enabledCatKeys();
-    if(cats.length === 0){
-      $("question").textContent = "⚠️ 你至少要啟用 1 個類別，且該類別至少勾選 2 個單位。";
-      finishRun(false);
-      return;
-    }
-
-    const catKey = pick(cats);
-    const unitKeys = Array.from(state.enabledUnits[catKey]);
-
-    const from = pick(unitKeys);
-    let to = pick(unitKeys);
-    while(to === from) to = pick(unitKeys);
-
-    const value = genValueFor(catKey, from, to);
-    const base = toBase(catKey, from, value);
-    const correct = fromBase(catKey, to, base);
-
-    state.current = { catKey, from, to, value, correct };
-    state.qStartMs = performance.now();
-
-    const catName = CATS.find(c=>c.key===catKey).name;
-    $("question").textContent = `【${catName}】把 ${formatNice(value)} ${from} 換算成 ${to} ＝ ？`;
-    startTimer();
-  }
-
-  function addLogRow({num, qText, your, correct, result, rt, timeUsed}){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="mono">${num}</td>
-      <td>${qText}</td>
-      <td class="right mono">${your}</td>
-      <td class="right mono">${correct}</td>
-      <td class="mono">${result}</td>
-      <td class="right mono">${rt}</td>
-      <td class="right mono">${timeUsed}</td>
-    `;
-    $("log").prepend(tr);
-  }
-
-  function updateStatsUI(){
-    const {ok,bad,to, sumRt, done} = state.stats;
-    $("okN").textContent = ok;
-    $("badN").textContent = bad;
-    $("toN").textContent = to;
-
-    const acc = done ? (ok / done * 100) : 0;
-    $("acc").textContent = `${acc.toFixed(1)}%`;
-
-    const avg = done ? (sumRt / done) : 0;
-    $("avg").textContent = `${avg.toFixed(2)}s`;
-  }
-
-  function isCorrect(user, correct){
-    // 相對誤差 <= 0.5% 或 絕對誤差極小
-    const absErr = Math.abs(user - correct);
-    if(absErr <= 1e-9) return true;
-    const denom = Math.max(1e-9, Math.abs(correct));
-    const relErr = absErr / denom;
-    return relErr <= 0.005;
-  }
-
-  function submitAnswer(kind){ // kind: "submit" | "skip" | "timeout"
-    if(!state.running || !state.current) return;
-
-    stopTimer();
-    const q = state.current;
-    const qText = `把 ${formatNice(q.value)} ${q.from} 換算成 ${q.to}`;
-    const correctVal = q.correct;
-
-    const now = performance.now();
-    const rt = (now - state.qStartMs) / 1000;
-    const timeUsed = $("noTimer").checked ? rt : (parseInt($("secPerQ").value||"0",10) - Math.max(0, state.tLeft));
-    const timeUsedText = $("noTimer").checked ? "--" : `${Math.max(0, timeUsed)}s`;
-
-    let yourText = "--";
-    let resultText = "--";
-    let fb = "";
-
-    if(kind === "skip"){
-      state.stats.bad += 1;
-      state.stats.done += 1;
-      state.stats.sumRt += rt;
-      yourText = "（跳過）";
-      resultText = `<span class="warn">SKIP</span>`;
-      fb = `已跳過。正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
-    } else if(kind === "timeout"){
-      state.stats.to += 1;
-      state.stats.done += 1;
-      state.stats.sumRt += rt;
-      yourText = "（超時）";
-      resultText = `<span class="bad">TIME</span>`;
-      fb = `超時！正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
-    } else {
-      const raw = $("answer").value.trim().replace(/,/g,"");
-      const userVal = Number(raw);
-      yourText = raw || "（空白）";
-
-      if(!isFinite(userVal)){
-        state.stats.bad += 1;
-        state.stats.done += 1;
-        state.stats.sumRt += rt;
-        resultText = `<span class="bad">錯</span>`;
-        fb = `輸入不是數字。正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
-      } else {
-        const ok = isCorrect(userVal, correctVal);
-        if(ok){
-          state.stats.ok += 1;
-          resultText = `<span class="ok">對</span>`;
-          fb = `答對 ✅  正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
-        } else {
-          state.stats.bad += 1;
-          resultText = `<span class="bad">錯</span>`;
-          fb = `答錯 ❌  正確答案：<span class="mono">${formatNice(correctVal)} ${q.to}</span>`;
+    // random selections
+    if(s.random){
+      for(const catKey in CATS){
+        const blk = document.querySelector(`[data-rand-cat="${catKey}"]`);
+        if(!blk) continue;
+        const catOn = blk.querySelector(`input[data-role="catOn"]`);
+        if(catOn && typeof s.random[catKey]?.enabled==="boolean"){
+          catOn.checked = s.random[catKey].enabled;
         }
-        state.stats.done += 1;
-        state.stats.sumRt += rt;
+        const allowed = s.random[catKey]?.allowed || {};
+        blk.querySelectorAll(`input[data-role="unit"]`).forEach(cb=>{
+          const key = cb.value;
+          if(typeof allowed[key]==="boolean") cb.checked = allowed[key];
+        });
       }
     }
+  }catch(e){}
+}
 
-    addLogRow({
-      num: state.idx,
-      qText,
-      your: yourText,
-      correct: `${formatNice(correctVal)} ${q.to}`,
-      result: resultText,
-      rt: rt.toFixed(2),
-      timeUsed: timeUsedText
+function saveSettings(){
+  const s = {
+    mode,
+    totalQ: Number($("totalQ").value),
+    timePerQ: Number($("timePerQ").value),
+    noTimer: $("noTimer").checked,
+    digits: Number($("digits").value),
+    directedCat: $("catDirected").value,
+    directedFrom: $("fromUnit").value,
+    directedTo: $("toUnit").value,
+    random: collectRandomConfig()
+  };
+  localStorage.setItem("uc_settings", JSON.stringify(s));
+}
+
+function resetLog(){
+  $("log").innerHTML = "";
+  stats = { ok:0, bad:0, timeout:0, sumRT:0, done:0 };
+  updateStats();
+  $("progress").textContent = "尚未開始";
+  $("timerBox").textContent = "⏱️ --";
+  $("question").textContent = "—";
+  $("qSub").textContent = "請按「開始」";
+  $("answer").value = "";
+}
+
+function updateStats(){
+  $("ok").textContent = stats.ok;
+  $("bad").textContent = stats.bad;
+  $("timeout").textContent = stats.timeout;
+
+  const acc = stats.done ? (stats.ok / stats.done * 100) : 0;
+  $("acc").textContent = acc.toFixed(1) + "%";
+
+  const avg = stats.done ? (stats.sumRT / stats.done) : 0;
+  $("avg").textContent = avg.toFixed(2) + "s";
+}
+
+function stopTimer(){
+  if(timer){ clearInterval(timer); timer=null; }
+}
+function startTimer(){
+  stopTimer();
+  if(noTimer){
+    $("timerBox").textContent = "⏱️ 不限時";
+    return;
+  }
+  remain = timePerQ;
+  $("timerBox").textContent = `⏱️ ${remain}s`;
+  timer = setInterval(()=>{
+    remain--;
+    $("timerBox").textContent = `⏱️ ${remain}s`;
+    if(remain<=0){
+      stopTimer();
+      markTimeout();
+    }
+  }, 1000);
+}
+
+function collectRandomConfig(){
+  const cfg = {};
+  for(const catKey in CATS){
+    const blk = document.querySelector(`[data-rand-cat="${catKey}"]`);
+    if(!blk) continue;
+    const enabled = blk.querySelector(`input[data-role="catOn"]`)?.checked || false;
+    const allowed = {};
+    blk.querySelectorAll(`input[data-role="unit"]`).forEach(cb=>{
+      allowed[cb.value] = cb.checked;
     });
+    cfg[catKey] = { enabled, allowed };
+  }
+  return cfg;
+}
 
-    $("feedback").innerHTML = fb;
-    updateStatsUI();
+function getRandomPlan(){
+  const cfg = collectRandomConfig();
+  const enabledCats = Object.keys(cfg).filter(k=>cfg[k].enabled);
 
-    if(state.idx >= state.total){
-      finishRun(true);
-      return;
+  // 若使用者都沒勾，保守：全開
+  const cats = enabledCats.length ? enabledCats : Object.keys(CATS);
+
+  // 挑一個類別
+  const catKey = cats[randInt(0, cats.length-1)];
+  const units = CATS[catKey].units.map(u=>u.key);
+
+  // 依允許單位過濾
+  const allowedMap = cfg[catKey]?.allowed || {};
+  const allowedUnits = units.filter(u=> allowedMap[u] !== false); // 沒存過就視為 true
+
+  // 若全被關掉，回到該類別所有
+  const pool = allowedUnits.length ? allowedUnits : units;
+
+  // 隨機 from/to（不同）
+  let from = pool[randInt(0,pool.length-1)];
+  let to = pool[randInt(0,pool.length-1)];
+  if(pool.length>1){
+    while(to===from) to = pool[randInt(0,pool.length-1)];
+  }
+  return { catKey, from, to };
+}
+
+function buildDirectedSelectors(){
+  // 類別選單
+  $("catDirected").innerHTML = Object.keys(CATS).map(k=>{
+    return `<option value="${k}">${CATS[k].name}</option>`;
+  }).join("");
+
+  function refreshUnits(){
+    const catKey = $("catDirected").value;
+    const units = CATS[catKey].units;
+
+    const opt = units.map(u=>`<option value="${u.key}">${u.label}</option>`).join("");
+    $("fromUnit").innerHTML = opt;
+    $("toUnit").innerHTML = opt;
+
+    // 若之前有保存，嘗試恢復；否則給預設不同單位
+    const s = JSON.parse(localStorage.getItem("uc_settings")||"{}");
+    if(s.directedFrom && getUnit(catKey, s.directedFrom)) $("fromUnit").value = s.directedFrom;
+    if(s.directedTo && getUnit(catKey, s.directedTo)) $("toUnit").value = s.directedTo;
+
+    if($("toUnit").value === $("fromUnit").value && units.length>1){
+      $("toUnit").value = units[units.length-1].key;
+      if($("toUnit").value === $("fromUnit").value) $("toUnit").value = units[0].key;
     }
 
-    state.idx += 1;
-    updateProgress();
-    nextQuestion();
+    // 提示
+    $("factorHint").textContent = buildHint(catKey);
+    $("factorHint").classList.toggle("show", $("showHint").checked);
   }
 
-  function handleTimeout(){
-    submitAnswer("timeout");
+  $("catDirected").addEventListener("change", ()=>{
+    refreshUnits();
+    saveSettings();
+  });
+  $("fromUnit").addEventListener("change", saveSettings);
+  $("toUnit").addEventListener("change", saveSettings);
+
+  refreshUnits();
+}
+
+function buildRandomBlocks(){
+  const host = $("randomBlocks");
+  host.innerHTML = "";
+
+  for(const catKey in CATS){
+    const cat = CATS[catKey];
+    const blk = document.createElement("div");
+    blk.className = "card";
+    blk.style.background = "rgba(15,27,51,0.55)";
+    blk.style.marginTop = "10px";
+    blk.setAttribute("data-rand-cat", catKey);
+
+    const unitChips = cat.units.map(u=>{
+      return `
+        <label class="chip" style="cursor:pointer">
+          <input data-role="unit" type="checkbox" value="${u.key}" checked />
+          ${u.label}
+        </label>`;
+    }).join("");
+
+    blk.innerHTML = `
+      <div class="row" style="justify-content:space-between">
+        <div><b style="color:#dfeaff">${cat.name}</b> <span class="mini muted">（同類別內隨機）</span></div>
+        <label class="chip" style="cursor:pointer">
+          <input data-role="catOn" type="checkbox" checked /> 啟用此類別
+        </label>
+      </div>
+      <div class="checks">${unitChips}</div>
+      <div class="mini muted" style="margin-top:6px">${buildHint(catKey).replaceAll("\n"," / ")}</div>
+    `;
+
+    host.appendChild(blk);
+
+    blk.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("change", saveSettings);
+    });
+  }
+}
+
+function setHintVisible(){
+  const catKey = (mode==="directed") ? $("catDirected").value : (current?.catKey || "length");
+  $("factorHint").textContent = buildHint(catKey);
+  $("factorHint").classList.toggle("show", $("showHint").checked);
+}
+
+function nextQuestion(){
+  qIndex++;
+  $("progress").textContent = `第 ${qIndex} / ${total} 題`;
+
+  // 產生題目
+  let plan;
+  if(mode==="directed"){
+    const catKey = $("catDirected").value;
+    const from = $("fromUnit").value;
+    const to = $("toUnit").value;
+    plan = { catKey, from, to };
+  }else{
+    plan = getRandomPlan();
   }
 
-  function finishRun(showDone){
-    stopTimer();
-    setRunningUI(false);
-    state.running = false;
-    setModeText(showDone ? "已完成" : "未開始");
-    $("submitBtn").disabled = true;
-    $("skipBtn").disabled = true;
-    setTimerText();
+  // 若 from/to 相同，強制換一個 to
+  if(plan.from === plan.to){
+    const units = CATS[plan.catKey].units.map(u=>u.key).filter(u=>u!==plan.from);
+    if(units.length) plan.to = units[randInt(0, units.length-1)];
   }
 
-  // === 按鈕事件 ===
-  $("startBtn").addEventListener("click", () => {
-    renderCats(); // 重新套用 disabled 狀態
-    const total = Math.max(1, parseInt($("totalQ").value || "10", 10));
-    state.total = total;
-    state.idx = 1;
-    state.current = null;
+  current = generateQuestion(plan.catKey, plan.from, plan.to, digits);
 
-    $("log").innerHTML = "";
-    $("feedback").textContent = "";
+  $("question").textContent = current.qText;
+  $("qSub").textContent = `類別：${CATS[current.catKey].name}｜答案為整數（必要時用複合單位出題）`;
+  $("answer").value = "";
+  $("answer").focus();
 
-    setRunningUI(true);
-    setModeText("進行中");
-    updateProgress();
-    nextQuestion();
+  tStart = performance.now();
+  startTimer();
+  setHintVisible();
+}
+
+function finish(){
+  running = false;
+  stopTimer();
+  $("submitBtn").disabled = true;
+  $("skipBtn").disabled = true;
+  $("startBtn").disabled = false;
+  $("progress").textContent = `完成！共 ${total} 題｜正確率 ${$("acc").textContent}`;
+  $("timerBox").textContent = "⏱️ --";
+}
+
+function addLogRow({idx, qText, your, correct, result, rt, timeStr}){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="right">${idx}</td>
+    <td>${escapeHtml(qText)}</td>
+    <td>${escapeHtml(String(your))}</td>
+    <td>${escapeHtml(String(correct))}</td>
+    <td>${resultBadge(result)}</td>
+    <td class="right">${rt.toFixed(2)}</td>
+    <td class="right">${escapeHtml(timeStr)}</td>
+  `;
+  $("log").prepend(tr);
+}
+function resultBadge(r){
+  if(r==="答對") return `<span class="badge ok">答對</span>`;
+  if(r==="超時") return `<span class="badge warn">超時</span>`;
+  return `<span class="badge bad">答錯</span>`;
+}
+function escapeHtml(s){
+  return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+function markTimeout(){
+  if(!running) return;
+  const rt = (performance.now()-tStart)/1000;
+
+  stats.timeout++;
+  stats.done++;
+  stats.sumRT += rt;
+  updateStats();
+
+  addLogRow({
+    idx:qIndex,
+    qText: current.qText,
+    your: "—",
+    correct: current.ans,
+    result: "超時",
+    rt,
+    timeStr: nowTimeStr()
   });
 
-  $("submitBtn").addEventListener("click", () => submitAnswer("submit"));
-  $("skipBtn").addEventListener("click", () => submitAnswer("skip"));
+  if(qIndex>=total) finish();
+  else nextQuestion();
+}
 
-  $("answer").addEventListener("keydown", (e) => {
-    if(e.key === "Enter" && !$("submitBtn").disabled){
-      submitAnswer("submit");
-    }
+function submit(){
+  if(!running) return;
+  stopTimer();
+  const rt = (performance.now()-tStart)/1000;
+
+  const raw = $("answer").value.trim();
+  // 只接受整數（可含正負號，但通常不會）
+  const your = (/^-?\d+$/.test(raw)) ? Number(raw) : NaN;
+
+  let result = "答錯";
+  if(Number.isFinite(your) && your === current.ans){
+    result = "答對";
+    stats.ok++;
+  }else{
+    stats.bad++;
+  }
+
+  stats.done++;
+  stats.sumRT += rt;
+  updateStats();
+
+  addLogRow({
+    idx:qIndex,
+    qText: current.qText,
+    your: raw==="" ? "（空白）" : raw,
+    correct: current.ans,
+    result,
+    rt,
+    timeStr: nowTimeStr()
   });
 
-  $("resetBtn").addEventListener("click", () => {
-    stopTimer();
-    state.stats = { ok:0, bad:0, to:0, sumRt:0, done:0 };
-    updateStatsUI();
-    $("log").innerHTML = "";
-    $("question").textContent = "請按「開始」";
-    $("feedback").textContent = "";
-    $("progress").textContent = "0 / 0";
-    setModeText("未開始");
-    setTimerText();
-    state.running = false;
-    setRunningUI(false);
-    renderCats();
+  if(qIndex>=total) finish();
+  else nextQuestion();
+}
+
+function skip(){
+  if(!running) return;
+  stopTimer();
+  const rt = (performance.now()-tStart)/1000;
+
+  stats.bad++;
+  stats.done++;
+  stats.sumRT += rt;
+  updateStats();
+
+  addLogRow({
+    idx:qIndex,
+    qText: current.qText,
+    your: "（跳過）",
+    correct: current.ans,
+    result: "答錯",
+    rt,
+    timeStr: nowTimeStr()
   });
 
-  // === PWA：註冊 Service Worker ===
+  if(qIndex>=total) finish();
+  else nextQuestion();
+}
+
+function start(){
+  // 讀設定
+  total = clamp(Number($("totalQ").value)||20, 1, 200);
+  timePerQ = clamp(Number($("timePerQ").value)||20, 1, 999);
+  noTimer = $("noTimer").checked;
+  digits = clamp(Number($("digits").value)||3, 1, 3);
+
+  // 定向模式：避免 from/to 相同
+  if(mode==="directed" && $("fromUnit").value === $("toUnit").value){
+    const catKey = $("catDirected").value;
+    const units = CATS[catKey].units.map(u=>u.key).filter(u=>u!==$("fromUnit").value);
+    if(units.length) $("toUnit").value = units[0];
+  }
+
+  saveSettings();
+
+  // 重置狀態
+  running = true;
+  qIndex = 0;
+  stats = { ok:0, bad:0, timeout:0, sumRT:0, done:0 };
+  updateStats();
+  $("log").innerHTML = "";
+
+  $("startBtn").disabled = true;
+  $("submitBtn").disabled = false;
+  $("skipBtn").disabled = false;
+
+  nextQuestion();
+}
+
+function wireEvents(){
+  // tabs
+  document.querySelectorAll(".tab").forEach(el=>{
+    el.addEventListener("click", ()=> setMode(el.dataset.mode));
+  });
+
+  ["totalQ","timePerQ","noTimer","digits"].forEach(id=>{
+    $(id).addEventListener("change", saveSettings);
+  });
+
+  $("showHint").addEventListener("change", setHintVisible);
+
+  $("startBtn").addEventListener("click", start);
+  $("resetBtn").addEventListener("click", ()=>{
+    localStorage.removeItem("uc_settings");
+    resetLog();
+    // 重新建立 UI
+    buildDirectedSelectors();
+    buildRandomBlocks();
+    loadSettings();
+    setHintVisible();
+  });
+
+  $("submitBtn").addEventListener("click", submit);
+  $("skipBtn").addEventListener("click", skip);
+  $("answer").addEventListener("keydown", (e)=>{
+    if(e.key==="Enter") submit();
+  });
+}
+
+function init(){
+  buildDirectedSelectors();
+  buildRandomBlocks();
+  loadSettings();
+  setHintVisible();
+  resetLog();
+
+  // PWA: service worker
   if("serviceWorker" in navigator){
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(()=>{});
-    });
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
   }
-
-  // init
-  renderCats();
-  updateStatsUI();
-  setTimerText();
-})();
+}
+wireEvents();
+init();
 </script>
 </body>
 </html>
