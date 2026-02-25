@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b1020" />
-  <title>單位換算練習（PWA）</title>
+  <title>單位換算練習</title>
   <link rel="manifest" href="manifest.webmanifest">
   <style>
     :root{
@@ -112,8 +112,8 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>單位換算練習（PWA）</h1>
-    <div class="pill">定向模式 / 隨機模式｜避免小數：用複合單位出題</div>
+    <h1>單位換算練習</h1>
+    <div class="pill">定向模式 / 隨機模式</div>
   </header>
 
   <div class="grid">
@@ -174,7 +174,7 @@
 
       <!-- 隨機模式 -->
       <div id="randomPanel" style="display:none">
-        <div class="mini">勾選要出題的類別與可用單位（同一類別內隨機 from/to）</div>
+        <div class="mini">勾選要出題的類別與可用單位</div>
 
         <div id="randomBlocks" style="margin-top:10px"></div>
       </div>
@@ -232,10 +232,6 @@
         <tbody id="log"></tbody>
       </table>
     </section>
-  </div>
-
-  <div class="mini muted" style="margin-top:12px">
-    ✅ 特色：如果換算會產生小數，題目會改用「複合單位」表示（例如 6 m 50 cm），讓答案仍然是整數。
   </div>
 </div>
 
@@ -441,7 +437,6 @@ function buildHint(catKey){
     const small = units[i+1];
     const k = big.factor / small.factor;
     // 只顯示整數換算（我們的設計都會是整數）
-    lines.push(`👉 1 ${big.label} = ${k} ${small.label}`);
   }
   return lines.join("\n");
 }
